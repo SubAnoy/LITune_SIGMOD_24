@@ -1,0 +1,76 @@
+ALEX:
+
+Static experiments: (for one dataset, 4 dataset in total: books, fb, OSM, MIX)
+0. Pre-training RL:
+python3 RL_controller_offline.py --RL_policy DDPG --load_model default --save_model True --Index ALEX --query_type balanced
+(python3 RL_controller_offline.py --RL_policy DDPG --load_model default --save_model True --Index ALEX --query_type read-heavy)
+(python3 RL_controller_offline.py --RL_policy DDPG --load_model default --save_model True --Index ALEX --query_type write-heavy)
+
+1. Run the eval_single_budget, output to single_budget.txt (budget 50, 100, 150,200,250)
+    sh eval_single_budget.sh balanced ALEX | tee ./logs/single_budget_balanced.txt &&
+    sh eval_single_budget.sh read-heavy ALEX | tee ./logs/single_budget_read.txt &&
+    sh eval_single_budget.sh write-heavy ALEX | tee ./logs/single_budget_write.txt
+2. Run evals with infinite budget
+    sh exe.sh balanced ALEX | tee ./logs/full_budget_balanced.txt &&
+    sh exe.sh read-heavy ALEX | tee ./logs/full_budget_read.txt &&
+    sh exe.sh write-heavy ALEX | tee ./logs/full_budget_write.txt
+
+Data shifts:
+
+1. Run the evalutions without O2:
+
+    sh exe_stream.sh balanced ALEX | tee ./logs/stream_balanced.txt ;
+    sh exe_stream.sh read-heavy ALEX | tee ./logs/stream_read.txt ;
+    sh exe_stream.sh write-heavy ALEX | tee ./logs/stream_write.txt 
+
+2. Run the evaluations with O2:
+
+    python3 RL_stream_controller.py --RL_policy DDPG --data_file data_11 --load_model default --Index ALEX --seed 0 --query_type balanced;
+    python3 RL_stream_controller.py --RL_policy DDPG --data_file data_11 --load_model default --Index ALEX --seed 0 --query_type read-heavy;
+    python3 RL_stream_controller.py --RL_policy DDPG --data_file data_11 --load_model default --Index ALEX --seed 0 --query_type write-heavy
+
+
+CARMI:
+
+Static experiments: (for one dataset, 4 dataset in total: books, fb, OSM, MIX)
+0. Pre-training RL:
+python3 RL_controller_offline.py --RL_policy DDPG --load_model default --save_model True --Index CARMI --query_type balanced
+(python3 RL_controller_offline.py --RL_policy DDPG --load_model default --save_model True --Index CARMI --query_type read-heavy)
+(python3 RL_controller_offline.py --RL_policy DDPG --load_model default --save_model True --Index CARMi --query_type write-heavy)
+
+1. Run the eval_single_budget, output to single_budget.txt (budget 50, 100, 150,200,250)
+    sh eval_single_budget.sh balanced CARMI 100 | tee ./logs/single_budget_balanced.txt
+    sh eval_single_budget.sh read-heavy CARMI 100 | tee ./logs/single_budget_read.txt
+    sh eval_single_budget.sh write-heavy CARMI 100 | tee ./logs/single_budget_write.txt
+2. Run evals with infinite budget
+    sh exe.sh balanced CARMI | tee ./logs/full_budget_balanced.txt &&
+    sh exe.sh read-heavy CARMI | tee ./logs/full_budget_read.txt &&
+    sh exe.sh write-heavy CARMI | tee ./logs/full_budget_write.txt
+
+Data shifts:
+
+1. Run the evalutions without O2:
+
+    sh exe_stream.sh balanced CARMI | tee ./logs/stream_balanced.txt &&
+    sh exe_stream.sh read-heavy CARMI | tee ./logs/stream_read.txt &&
+    sh exe_stream.sh write-heavy CARMI | tee ./logs/stream_write.txt
+
+2. Run the evaluations with O2:
+
+    python3 RL_stream_controller.py --RL_policy DDPG --data_file data_11 --load_model default --Index CARMI --seed 0 --query_type balanced &&
+    python3 RL_stream_controller.py --RL_policy DDPG --data_file data_11 --load_model default --Index CARMI --seed 0 --query_type read-heavy &&
+    python3 RL_stream_controller.py --RL_policy DDPG --data_file data_11 --load_model default --Index CARMI --seed 0 --query_type write-heavy
+
+
+
+sh exe_full_test.sh balanced ALEX books_200M_uint64 | tee ./logs/logs_books_ALEX_FULL_TEST/full_balanced.txt &&
+sh exe_full_test.sh balanced ALEX fb_200M_uint64 | tee ./logs/logs_fb_ALEX_FULL_TEST/full_balanced.txt && 
+sh exe_full_test.sh balanced ALEX concat_MIX_200M_uint64 | tee ./logs/logs_MIX_ALEX_FULL_TEST/full_balanced.txt &&
+sh exe_full_test.sh read-heavy ALEX concat_MIX_200M_uint64 | tee ./logs/logs_MIX_ALEX_FULL_TEST/full_read.txt &&
+sh exe_full_test.sh write-heavy ALEX concat_MIX_200M_uint64| tee ./logs/logs_MIX_ALEX_FULL_TEST/full_write.txt && 
+sh exe_full_test.sh read-heavy ALEX fb_200M_uint64 | tee ./logs/logs_fb_ALEX_FULL_TEST/full_read.txt &&
+sh exe_full_test.sh write-heavy ALEX fb_200M_uint64 | tee ./logs/logs_fb_ALEX_FULL_TEST/full_write.txt && 
+sh exe_full_test.sh read-heavy ALEX books_200M_uint64 | tee ./logs/logs_books_ALEX_FULL_TEST/full_read.txt &&
+sh exe_full_test.sh write-heavy ALEX books_200M_uint64 | tee ./logs/logs_books_ALEX_FULL_TEST/full_write.txt &&
+sh exe_full_test.sh read-heavy ALEX osm_cellids_200M_uint64 | tee ./logs/logs_OSM_ALEX_FULL_TEST/full_read.txt &&
+sh exe_full_test.sh write-heavy ALEX osm_cellids_200M_uint64 | tee ./logs/logs_OSM_ALEX_FULL_TEST/full_write.txt &&
