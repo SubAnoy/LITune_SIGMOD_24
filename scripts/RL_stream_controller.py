@@ -249,8 +249,6 @@ if __name__ == "__main__":
 
         # Evaluate episode
 
-
-
         if (t+1) % args.comp_freq == 0:
 
             print("----------------online evalution---------------")
