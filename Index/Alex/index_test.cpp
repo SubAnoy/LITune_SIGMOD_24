@@ -16,13 +16,13 @@ using namespace std;
 
 #include "src/alex_map.h"
 
-#define TIME_WINDOW 90000000
-#define NO_BULK_LOAD 10000000
-#define NO_INSERT 80000000
+#define TIME_WINDOW 9000000
+#define NO_BULK_LOAD 1000000
+#define NO_INSERT 8000000
 
 
-#define NO_SEARCH 60000000
-#define TOTAL_PAIRS 80000000*3
+#define NO_SEARCH 6000000
+#define TOTAL_PAIRS 8000000*3
 // #define TIME_WINDOW 9000000
 // #define TIME_WINDOW 500000
 
@@ -123,14 +123,14 @@ int main(int argc, char * argv[])
     start=clock();
 
     if (query_type == "balanced") {
-    // Insert the rest 80M elements
+    // Insert the rest 8M elements
     for (int i = 0; i < update_data.size(); ++i)
     {
         alex.insert(*it, i);
         ++it;
     }
 
-    // Range query 160M
+    // Range query 16M
 
     for (int i = 0; i < update_data.size(); ++i) {
         uint64_t query_key = update_data[i];
@@ -140,7 +140,7 @@ int main(int argc, char * argv[])
         // alex.erase(query_key);
     }
 
-    //Delete query 80M
+    //Delete query 8M
 
     for (int i = 0; i < update_data.size(); ++i)
     {
@@ -154,10 +154,10 @@ int main(int argc, char * argv[])
     
     
     else if (query_type == "read-heavy") {
-    //Read-heavy query 4M
+    //Read-heavy query
 
     // Insert 4M elements
-    for (int i = 0; i < 40000000; ++i)
+    for (int i = 0; i < 4000000; ++i)
     {
         alex.insert(*it, i);
         ++it;
@@ -175,7 +175,7 @@ int main(int argc, char * argv[])
     }
     
     // Delete 4M elements
-    for (int i = 0; i < 40000000; ++i)
+    for (int i = 0; i < 4000000; ++i)
     {
 
         alex.erase(*itDelete);
@@ -190,7 +190,7 @@ int main(int argc, char * argv[])
     //Write-heavy query
 
     // Insert 6M elements
-    for (int i = 0; i < 60000000; ++i)
+    for (int i = 0; i < 6000000; ++i)
     {
         alex.insert(*it, i);
         ++it;
@@ -198,7 +198,7 @@ int main(int argc, char * argv[])
 
     // Range query, 4M
 
-    for (int i = 0; i < 10000000; ++i) {
+    for (int i = 0; i < 1000000; ++i) {
         uint64_t query_key = update_data[i];
         alex.lower_bound(query_key);
         alex.upper_bound(query_key);
@@ -208,7 +208,7 @@ int main(int argc, char * argv[])
     }
     
     // Delete 6M elements
-    for (int i = 0; i < 60000000; ++i)
+    for (int i = 0; i < 6000000; ++i)
     {
 
         alex.erase(*itDelete);
@@ -224,16 +224,16 @@ int main(int argc, char * argv[])
         throughput = (4.0 * update_data.size()) / total_time;
     }
     else if (query_type == "read-heavy") {
-        throughput = (320000000.0) / total_time; 
+        throughput = (32000000.0) / total_time; 
         }
     else {
-        throughput = (160000000.0) / total_time;
+        throughput = (16000000.0) / total_time;
     }
 
     //Output into File
     ofstream throughput_out("./throughput_result.txt");
     assert(throughput_out);
-    cout<< "Throughput: " << throughput << " ops/sec." << endl;
+    // cout<< "Throughput: " << throughput << " ops/sec." << endl;
     throughput_out << "Throughput: " << throughput << " ops/sec." << endl;
     throughput_out.close();
   

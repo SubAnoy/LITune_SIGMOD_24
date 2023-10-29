@@ -16,9 +16,11 @@
 using namespace std;
 
 
-
-#define NO_BULK_LOAD 500
-#define NO_INSERT 8000
+#define TIME_WINDOW 9000000
+#define NO_BULK_LOAD 1000000
+#define NO_INSERT 8000000
+// #define NO_BULK_LOAD 500
+// #define NO_INSERT 8000
 
 
 
@@ -99,7 +101,7 @@ int main(int argc, char * argv[])
     vector<pair<uint64_t,uint64_t>> bulk_data;
 
 
-    // Extract the first 9K elements
+    // Extract the first 9M elements
 
 
     if (!load_binary_sosd_key_value<uint64_t,uint64_t>(data_file_path, dataKV))
@@ -160,14 +162,14 @@ int main(int argc, char * argv[])
 
 
     if (query_type == "balanced") {
-    // Insert the rest 4k elements
-    for (int i = 0; i < 4000; ++i)
+    // Insert the rest 4M elements
+    for (int i = 0; i < 4000000; ++i)
     {
         carmi.insert(*it);
         ++it;
     }
-    // Range query 8K
-    for (int i = 0; i < 4000; ++i) {
+    // Range query 8M
+    for (int i = 0; i < 4000000; ++i) {
         uint64_t query_key = dataKV.at((dataKV.begin() - dataKV.begin()) + (rand() % 
         ( (dataKV.end() - dataKV.begin()) - (dataKV.begin() - dataKV.begin()) + 1 ))).first;
 
@@ -177,27 +179,27 @@ int main(int argc, char * argv[])
         // carmi.erase(query_key);
     }
 
-    //Delete query 4K
+    //Delete query 4M
 
-    for (int i = 0; i < 4000; ++i)
+    for (int i = 0; i < 4000000; ++i)
     {
 
         carmi.erase(itDelete->first);
         ++itDelete;
     }   
     } else if (query_type == "read-heavy") {
-    //Read-heavy query 4K
+    //Read-heavy query
 
-    // Insert 2k elements
-    for (int i = 0; i < 2000; ++i)
+    // Insert 4M elements
+    for (int i = 0; i < 4000000; ++i)
     {
         carmi.insert(*it);
         ++it;
     }
 
-    // Range query
+    // Range query, 24M
 
-    for (int i = 0; i < 6000; ++i) {
+    for (int i = 0; i < 12000000; ++i) {
         uint64_t query_key = dataKV.at((dataKV.begin() - dataKV.begin()) + (rand() % 
         ( (dataKV.end() - dataKV.begin()) - (dataKV.begin() - dataKV.begin()) + 1 ))).first;
 
@@ -208,8 +210,8 @@ int main(int argc, char * argv[])
         // carmi.erase(query_key);
     }
     
-    // Delete 2K elements
-    for (int i = 0; i < 2000; ++i)
+    // Delete 4M elements
+    for (int i = 0; i < 4000000; ++i)
     {
 
         carmi.erase(itDelete->first);
@@ -219,16 +221,16 @@ int main(int argc, char * argv[])
     } else if (query_type == "write-heavy") {
     //Write-heavy query
 
-    // Insert 6K elements
-    for (int i = 0; i < 6000; ++i)
+    // Insert 6M elements
+    for (int i = 0; i < 6000000; ++i)
     {
         carmi.insert(*it);
         ++it;
     }
 
-    // Range query, 4K
+    // Range query, 4M
 
-    for (int i = 0; i < 1000; ++i) {
+    for (int i = 0; i < 1000000; ++i) {
         uint64_t query_key = dataKV.at((dataKV.begin() - dataKV.begin()) + (rand() % 
         ( (dataKV.end() - dataKV.begin()) - (dataKV.begin() - dataKV.begin()) + 1 ))).first;
 
@@ -239,8 +241,8 @@ int main(int argc, char * argv[])
         // carmi.erase(query_key);
     }
     
-    // Delete 6K elements
-    for (int i = 0; i < 6000; ++i)
+    // Delete 6M elements
+    for (int i = 0; i < 6000000; ++i)
     {
 
         carmi.erase(itDelete->first);
@@ -250,6 +252,26 @@ int main(int argc, char * argv[])
 
 
     end=clock();
+    
+    double total_time = (double)(end-start)/CLOCKS_PER_SEC;
+
+    double throughput = 0.0;
+
+    if (query_type == "balanced") {
+        throughput = (4.0 * update_data.size()) / total_time;
+    }
+    else if (query_type == "read-heavy") {
+        throughput = (32000000.0) / total_time; 
+        }
+    else {
+        throughput = (16000000.0) / total_time;
+    }
+    //Output into File
+    ofstream throughput_out("./throughput_result.txt");
+    assert(throughput_out);
+    // cout<< "Throughput: " << throughput << " ops/sec." << endl;
+    throughput_out << "Throughput: " << throughput << " ops/sec." << endl;
+    throughput_out.close();
 
     //Output execution time
     ofstream run_time_out("./runtime_result.txt");

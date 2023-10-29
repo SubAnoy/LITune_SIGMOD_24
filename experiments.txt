@@ -73,4 +73,4 @@ sh exe_full_test.sh write-heavy ALEX fb_200M_uint64 | tee ./logs/logs_fb_ALEX_FU
 sh exe_full_test.sh read-heavy ALEX books_200M_uint64 | tee ./logs/logs_books_ALEX_FULL_TEST/full_read.txt &&
 sh exe_full_test.sh write-heavy ALEX books_200M_uint64 | tee ./logs/logs_books_ALEX_FULL_TEST/full_write.txt &&
 sh exe_full_test.sh read-heavy ALEX osm_cellids_200M_uint64 | tee ./logs/logs_OSM_ALEX_FULL_TEST/full_read.txt &&
-sh exe_full_test.sh write-heavy ALEX osm_cellids_200M_uint64 | tee ./logs/logs_OSM_ALEX_FULL_TEST/full_write.txt &&
+sh exe_full_test.sh write-heavy ALEX osm_cellids_200M_uint64 | tee ./logs/logs_OSM_ALEX_FULL_TEST/full_write.txt 

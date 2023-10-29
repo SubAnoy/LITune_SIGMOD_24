@@ -50,21 +50,21 @@ class Linear_model():
 
         """Linear fitting, output intercept and coef"""
         
-        model = LinearRegression() # 构建线性模型
+        model = LinearRegression() 
         x = x.reshape(-1,1)
         y = y.reshape(-1,1)
-        model.fit(x, y) # 自变量在前，因变量在后
-        predicts = model.predict(x) # 预测值
-        R2 = model.score(x, y) # 拟合程度 R2
-        # print('R2 = %.2f' % R2) # 输出 R2
-        coef = model.coef_ # 斜率
-        intercept = model.intercept_ # 截距
+        model.fit(x, y) 
+        predicts = model.predict(x) 
+        R2 = model.score(x, y) 
+
+        coef = model.coef_ 
+        intercept = model.intercept_ 
 
         return predicts, R2, coef,intercept
 
 
 
-# 这里不固定 random 模块的随机种子，因为 random 模块后续要用于超参组合随机组合。
+
 def set_seed(seed):
     torch.manual_seed(seed)
     np.random.seed(seed)
@@ -146,11 +146,11 @@ class test():
         self.b = b
         
     def fit(self,x,y):
-        model = LogisticRegression(intercept_scaling=self.k,verbose=self.b) # 构建线性模型
+        model = LogisticRegression(intercept_scaling=self.k,verbose=self.b) 
         x = x.reshape(-1,1)
         y = y.reshape(-1,1)
         
-        s = model.fit(x, y) # 自变量在前，因变量在后
+        s = model.fit(x, y) 
 
         return s
 

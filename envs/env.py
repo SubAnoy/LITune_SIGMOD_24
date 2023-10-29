@@ -10,17 +10,42 @@ import Index.CARMI.Parameter_change as carmi_parameter
 import subprocess
 from copy import deepcopy
 import itertools
-
+import threading
 import numpy as np
 from typing import Tuple
 from typing import Optional
 from collections import namedtuple
-
+import psutil
 import gym
 from gym import spaces
 from gym.utils import seeding
 
 TIME_OUT = 300
+
+class SegFaultDetector:
+    
+    def __init__(self):
+        self.main_thread_alive = True  # a flag to keep track of the main thread's status
+        self.detector_thread = threading.Thread(target=self._monitor_main_thread)
+        self.detector_thread.start()
+
+    def _monitor_main_thread(self):
+        """
+        Monitor the health of the main thread.
+        If the main thread dies, change the flag.
+        """
+        main_thread = threading.current_thread()
+        while self.main_thread_alive:
+            if not main_thread.is_alive():
+                self.main_thread_alive = False
+            time.sleep(0.1)  # polling interval
+
+    def is_main_thread_alive(self):
+        """
+        Return the status of the main thread.
+        """
+        return self.main_thread_alive
+    
 
 class LinearFitting(gym.Env):
     """Custom Environment that follows gym interface"""
@@ -189,7 +214,7 @@ class Action:
         self.parameters = parameters
 
     @property
-    def parameter(self) -> float:
+    def parameter(self):
         """"
         Property method to return the parameter related to the action selected.
 
@@ -301,14 +326,90 @@ class ALEXIndex(gym.Env):
         self.last_cost = self.init_cost
         self.imp_count = 0
         
+        # Uncomment lines below during training for risk mitigation purposes
+        # Memory Leak Detector
+        # self.previous_memory_usage = psutil.Process().memory_info().rss / (1024 * 1024)  # in MB
+        
+        # # Segmentation Fault Detector
+        # self.seg_fault_detector = SegFaultDetector()
+        
+        # # For runtime check
+        # self.allowed_runtime = 60  # set some reasonable limit, e.g., 60 seconds
+        # self.start_time = None  # will be set at the start of each step
+        
 
-    def seed(self, seed: Optional[int] = None) -> list:
+    def seed(self, seed: Optional[int] = None):
         self.np_random, seed = seeding.np_random(seed)  # noqa
         return [seed]
 
     def action_discretization(self,raw_action_i,n):
 
         return int(raw_action_i * n) - 1
+    
+    
+    def is_system_in_danger(self):
+        """
+        Check system-level symptoms indicating issues like endless loops, long runtimes, memory leaks, or segmentation faults.
+        """
+        # Check for long runtimes
+        current_time = time.time()
+        if current_time - self.start_time > self.allowed_runtime:
+            return True
+        
+        # Check for memory leak
+        current_memory_usage = psutil.Process().memory_info().rss / (1024 * 1024)  # in MB
+        memory_diff = current_memory_usage - self.previous_memory_usage
+        if memory_diff > 100:  # assuming 100 MB abrupt increase is an indicator
+            return True
+
+        # Check for segmentation fault
+        if not self.seg_fault_detector.is_main_thread_alive():
+            return True
+        
+        return False
+
+    def is_forbidden(self, state):
+        """
+        Check if the state violates some predefined constraints.
+        """
+        
+        # Uncomment lines below during training for risk mitigation purposes
+        # # Hard thresholds for ALEX (env1)
+        # alex_hard_thresholds = {
+        #     "no_model_nodes": 30,  # Somewhat above the provided dangerous value
+        #     "no_model_node_expansions": 1500000,
+        #     "num_model_node_expansion_pointers": 2400000,
+        #     "no_data_nodes": 125,
+        #     "no_expand_and_scale": 22000000,
+        #     "no_downward_split": 4100000,
+        #     "no_sideways_split": 1900000,
+        #     "no_downward_split_keys": 17000000,
+        #     "no_sideways_split_keys": 115000000,
+        #     "no_search": 120000000,
+        #     "no_inserts": 31000000,
+        #     "no_node_traveral": 140000000
+        # }
+
+        # # Linear combinations of specific state variables
+        # # If the weighted sum of some states goes beyond a threshold, it indicates danger
+        # weighted_sums = [
+        #     (state["no_model_nodes"] + 0.5 * state["no_data_nodes"], 45),  # total should not exceed 45
+        #     (0.2 * state["no_downward_split"] + 0.3 * state["no_sideways_split"], 1250000),  # total should not exceed 1,250,000
+        #     (0.1 * state["no_search"] + 0.05 * state["no_inserts"], 14000000)  # total should not exceed 14,000,000
+        # ]
+        
+        # # Check hard thresholds
+        # for key, value in state.items():
+        #     if key in alex_hard_thresholds:
+        #         if value >= alex_hard_thresholds[key]:
+        #             return True  # Current state is in a dangerous region
+        
+        # # Check linear combinations
+        # for sum_value, threshold in weighted_sums:
+        #     if sum_value >= threshold:
+        #         return True  # Current state is in a dangerous region
+
+        return False
     
     def action_converter(self,action):
 
@@ -429,7 +530,7 @@ class ALEXIndex(gym.Env):
         return state
 
 
-    def reset(self) -> list:
+    def reset(self):
 
         self.last_cost = self.init_cost
 
@@ -449,6 +550,8 @@ class ALEXIndex(gym.Env):
         return self.get_state('./state_result.txt')
 
     def step(self, action):
+        
+        self.start_time = time.time()
 
         # action = self.action_converter(raw_action)
         self.action_validation(action)
@@ -484,7 +587,19 @@ class ALEXIndex(gym.Env):
 
                 
             # reward = deltac0
-            
+
+        # Uncomment lines below during training for risk mitigation purposes
+        # danger_penalty = -100
+
+        # # Check for system-level dangers
+        # if self.is_system_in_danger():
+        #     reward += danger_penalty
+
+        # # Check for forbidden state and terminate episode if true
+        # if self.is_forbidden(state):
+        #     done = True
+        #     reward = danger_penalty
+ 
         
         if (self.init_cost-current_cost)/ self.init_cost >= 0.75:
             done = True
@@ -629,11 +744,23 @@ class CARMIIndex(gym.Env):
             self.last_cost = self.init_cost
             self.imp_count = 0
             
+            
+            # Uncomment these during training for risk mitigation purposes
+            # # Memory Leak Detector
+            # self.previous_memory_usage = psutil.Process().memory_info().rss / (1024 * 1024)  # in MB
+            
+            # # Segmentation Fault Detector
+            # self.seg_fault_detector = SegFaultDetector()
+            
+            # # For runtime check
+            # self.allowed_runtime = 60  # set some reasonable limit, e.g., 60 seconds
+            # self.start_time = None  # will be set at the start of each step
 
+    
         def print_f(self):
             print(self.query_type)
 
-        def seed(self, seed: Optional[int] = None) -> list:
+        def seed(self, seed: Optional[int] = None):
             self.np_random, seed = seeding.np_random(seed)  # noqa
             return [seed]
 
@@ -715,6 +842,77 @@ class CARMIIndex(gym.Env):
             assert action[13]  == 0 or action[13] == 1
 
             assert action[14]  >= 0.1  and action[14] <= 100
+            
+
+        def is_system_in_danger(self):
+            """
+            Check system-level symptoms indicating issues like endless loops, long runtimes, memory leaks, or segmentation faults.
+            """
+            # Check for long runtimes
+            current_time = time.time()
+            if current_time - self.start_time > self.allowed_runtime:
+                return True
+            
+            # Check for memory leak
+            current_memory_usage = psutil.Process().memory_info().rss / (1024 * 1024)  # in MB
+            memory_diff = current_memory_usage - self.previous_memory_usage
+            if memory_diff > 100:  # assuming 100 MB abrupt increase is an indicator
+                return True
+
+            # Check for segmentation fault
+            if not self.seg_fault_detector.is_main_thread_alive():
+                return True
+            
+            return False
+        
+        
+        def is_forbidden(self, state):
+            """
+            Check if the state violates some predefined constraints.
+            """
+            
+            # Uncomment lines below during training for risk mitigation purposes
+
+            # # Hard thresholds for `carmi` environment
+            # carmi_hard_thresholds = {
+            #     "no_leaf": 1200, 
+            #     "lambda": 5600, 
+            #     "prefetchEnd": 0,  # Dangerous if it's non-negative
+            #     "querySize": 105000,
+            #     "reservedSpace": 660000000,
+            #     "isInitMode": 2100,
+            #     "noFindQueryKeyVisit": 5200,
+            #     "avgfindQueryVisitPerKey": 1100,
+            #     "noInsertQueryKeyVisit": 5200,
+            #     "costSize": 220,
+            #     "avgTimeCost": 122000,
+            #     "avgSpaceCost": 0.125,
+            #     "avgTotalCost": 11,
+            #     "remainingNode": 235,
+            #     "scanLeafRange": 240
+            # }
+
+            # # Linear combinations of specific state variables
+            # # If the weighted sum of some states goes beyond a threshold, it indicates danger
+            # weighted_sums = [
+            #     (state["lambda"] + 0.01 * state["avgTotalCost"], 5611),  # total should not exceed 5611
+            #     (0.2 * state["noFindQueryKeyVisit"] + 0.3 * state["noInsertQueryKeyVisit"], 1030),  # total should not exceed 1030
+            #     (0.1 * state["avgTimeCost"] + 100 * state["avgSpaceCost"], 12210)  # total should not exceed 12,210
+            # ]
+            
+            # # Check hard thresholds
+            # for key, value in state.items():
+            #     if key in carmi_hard_thresholds:
+            #         if value >= carmi_hard_thresholds[key]:
+            #             return True  # Current state is in a dangerous region
+            
+            # # Check linear combinations
+            # for sum_value, threshold in weighted_sums:
+            #     if sum_value >= threshold:
+            #         return True  # Current state is in a dangerous region
+
+            return False
+
 
 
 
@@ -730,7 +928,7 @@ class CARMIIndex(gym.Env):
             return state
 
 
-        def reset(self) -> list:
+        def reset(self):
 
             self.last_cost = self.init_cost
 
@@ -746,12 +944,12 @@ class CARMIIndex(gym.Env):
             self.last_cost = self.init_cost
             
             self.imp_count = 0
-        
-
+            
             return self.get_state('./state_result.txt')
 
         def step(self, action):
-
+            
+            self.start_time = time.time()
             # action = self.action_converter(raw_action)
             self.action_validation(action)
             # carmi_parameter.updateFile("./Index/CARMI/src/parameters.hpp",action)
@@ -785,8 +983,19 @@ class CARMIIndex(gym.Env):
                 else:
 
                     reward = -1 * ((1-deltac_init)**2 - 1) * abs(1 - deltac0)
-
                     
+            
+            # Uncomment the following code during training for risk mitigation purpose
+            # danger_penalty = -100
+
+            # # Check for system-level dangers
+            # if self.is_system_in_danger():
+            #     reward += danger_penalty
+
+            # # Check for forbidden state and terminate episode if true
+            # if self.is_forbidden(state):
+            #     done = True
+            #     reward = danger_penalty
 
 
                 # reward = deltac0

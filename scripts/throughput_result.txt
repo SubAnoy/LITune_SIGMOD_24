@@ -1,0 +1,1 @@
+Throughput: 1.21955e+06 ops/sec.
