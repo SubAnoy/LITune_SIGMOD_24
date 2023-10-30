@@ -21,7 +21,7 @@ Paper ID: 827
 
 ## 3. Running Environment:
 
-Firstly, make sure you have the required C++ compile environment set up. It should support both ALEX and PGM use cases. Run the following commands for compilation:
+Firstly, make sure you have the required C++ compile environment set up. It should support both ALEX and PGM use cases (Just apply LITune on ALEX as an example). Run the following commands for compilation:
 
 ```
 g++ ./Index/Alex/index_test.cpp -w -std=c++17 -msse4 -mpopcnt -mlzcnt -mbmi -o ./Index/Alex/exe_alex_index
@@ -51,7 +51,6 @@ For a more extensive list of options and flexible configurations/arguments, delv
 
 ### Evaluation Pointers:
 > - Note: Please be cautious when using CARMI for certain use cases, as it may exhaust system memory and potentially cause system instability or crashes. Always ensure you have adequate backups and monitor resource usage during evaluations.
-> 
 > - Here, we just take ALEX as an example, please use the similar command for testing on CARMI
 > - Output evalutation results to `./logs`
 > - For all evaluations, repeat with `query_type` as `read-heavy` and `write-heavy` as mentioned
