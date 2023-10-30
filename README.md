@@ -1,4 +1,4 @@
-#LITune SIGMOD 2024 Setup and Evaluation Guide
+# LITune SIGMOD 2024 Setup and Evaluation Guide
 
 
 This is code repo for Paper LITune: Tuning Learned Index Using Deep Reinforcement Learning
@@ -8,18 +8,18 @@ Track Name: Research Paper 4th Submission Round
 Paper ID: 827
 
 
-### Prerequisites:
+## 1. Prerequisites:
 * Ensure you have `g++` installed with support for `C++17` and the required flags.
 * Python environment set up, preferably using a virtual environment for isolation.
 
-### Dependicies on External Learned Index Repo
+## 2. Dependicies on External Learned Index Repo
 
 > ALEX: [GitHub Repository](https://github.com/microsoft/ALEX)
 
 > CARMI: [Research Paper](https://www.vldb.org/pvldb/vol15/p2679-gao.pdf)
 
 
-### Running Environment:
+## 3. Running Environment:
 
 Firstly, make sure you have the required C++ compile environment set up. It should support both ALEX and PGM use cases. Run the following commands for compilation:
 
@@ -37,17 +37,15 @@ For Python dependencies, you can use `pip` to install the required libraries:
 ```
 python3 -m venv litune_venv
 source litune_venv/bin/activate
-
 ```
 
 - Install the Python requirements:
 
 ```
 pip install -r requirements.txt
-
 ```
 
-### Evaluation:
+## 4. Evaluation:
 
 For a more extensive list of options and flexible configurations/arguments, delve into the Python controller files located in the ./scripts directory or check the provided shell execution scripts.
 
@@ -69,7 +67,6 @@ For a more extensive list of options and flexible configurations/arguments, delv
 
 ```
 sh exe_RL_training.sh
-
 ```
 
 **Static Experiments**:
@@ -80,7 +77,6 @@ sh exe_RL_training.sh
 
 ```
 sh eval_single_budget.sh balanced ALEX | tee ./logs/single_budget_balanced.txt
-
 ```
 
 - Step 2: Run evaluations with rich budget:
@@ -88,7 +84,6 @@ sh eval_single_budget.sh balanced ALEX | tee ./logs/single_budget_balanced.txt
 
 ```
 sh exe.sh balanced ALEX | tee ./logs/full_budget_balanced.txt
-
 ```
 
 **Data Shifts**:
@@ -97,14 +92,12 @@ sh exe.sh balanced ALEX | tee ./logs/full_budget_balanced.txt
 
 ```
 sh exe_stream.sh balanced ALEX | tee ./logs/stream_balanced.txt
-
 ```
 
 - Step 2: Run the evaluations with the O2 system:
 
 ```
 sh exe_O2.sh
-
 ```
 
 
