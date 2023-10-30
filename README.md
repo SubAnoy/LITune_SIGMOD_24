@@ -28,7 +28,7 @@ g++ ./Index/Alex/index_test.cpp -w -std=c++17 -msse4 -mpopcnt -mlzcnt -mbmi -o .
 ./Index/Alex/exe_alex_index ./data_SOSD/{data_file_name} {query_type}
 ```
 
-Here we provided the dafault sample data chunks stored in `data_SOSD` folder from SOSD OSM (For SOSD, see here `https://github.com/learnedsystems/SOSD`)
+Here we provided the dafault sample data chunks stored in `data_SOSD` folder from SOSD OSM (For SOSD, see here `https://github.com/learnedsystems/SOSD`). We prepare four datasets in total: *books*, *fb*, *OSM*, *MIX*. Others are stored in `./data_SOSD_other`
 
 For Python dependencies, you can use `pip` to install the required libraries:
 
@@ -60,7 +60,10 @@ For a more extensive list of options and flexible configurations/arguments, delv
 
 **Pre-training LITune-RL**:
 
-> There are four datasets in total: books, fb, OSM, MIX. 
+> You have two options available:
+
+> - You can train the model from scratch using the provided scripts.
+> - For a quicker approach, you can directly proceed to the evaluations section by utilizing the pre-trained model located in `./rlmodels`.
 
 
 - Pre-training the RL model for ALEX:
@@ -70,7 +73,6 @@ sh exe_RL_training.sh
 ```
 
 **Static Experiments**:
-
 
 
 - Step 1: Run the evaluation for different budgets and output results:
