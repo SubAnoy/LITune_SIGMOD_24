@@ -1,7 +1,7 @@
 # LITune SIGMOD 2024 Setup and Evaluation Guide
 
 
-This is code repo for Paper LITune: Tuning Learned Index Using Deep Reinforcement Learning
+This is the code repo for Paper **LITune: Tuning Learned Index Using Deep Reinforcement Learning**
 
 Track Name: Research Paper 4th Submission Round
 
